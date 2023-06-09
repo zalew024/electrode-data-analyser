@@ -84,7 +84,7 @@ def export_fig(fig, **fig_props):
     )
     for i, trace in enumerate(fig.data):
         trace.marker.symbol = marker_symbols[i % len(marker_symbols)]
-    fig_x = pio.to_image(fig=fig, width=1400, height=1000, scale=10, format='png', engine="kaleido")
+    fig_x = fig.to_image(format="png", engine="kaleido")
     return fig_x
 
 @st.cache_data
