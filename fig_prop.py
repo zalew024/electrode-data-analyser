@@ -1,5 +1,4 @@
 import streamlit as st
-import plotly.io as pio
 
 
 color_palette = [
@@ -53,6 +52,13 @@ def export_fig(fig, **fig_props):
         ),
         colorway=color_palette
     )
+    fig.update_shapes(
+        selector=dict(
+            name='vertical_line'
+        ), 
+        line_color='#000000', 
+        line_width=1
+    )
     fig.update_xaxes(
         title_text=fig_props.get('x_label'),
         minor=dict(
@@ -84,7 +90,7 @@ def export_fig(fig, **fig_props):
     )
     for i, trace in enumerate(fig.data):
         trace.marker.symbol = marker_symbols[i % len(marker_symbols)]
-    fig_x = fig.to_image(format="png", engine="kaleido")
+    fig_x = fig.to_image(width=1400, height=1000, scale=10, format='png', engine="kaleido")
     return fig_x
 
 @st.cache_data

@@ -12,6 +12,7 @@ from fig_prop import export_fig, show_fig, data_to_plot, download_fig
 
 
 st.set_page_config(
+    page_title="Electrode Data Analyser",
     page_icon=":chart_with_upwards_trend:"
 )
 
@@ -145,7 +146,7 @@ with tabs[0]:
                                     step=0.01, key='frequency', help="Enter frequency for which corresponding impedance will be found", 
                                     on_change=calc_z)
                 with col1_2:
-                    freq_units = st.selectbox("", ("Hz", "kHz", "MHz"), key=3)
+                    freq_units = st.selectbox("", ("Hz",), key='u_freq')
                 
             with col2:
                 image = Image.open('img/link_icon.png')
@@ -158,7 +159,7 @@ with tabs[0]:
                                     step=0.01, key='impedance', help="Enter impedance for which corresponding frequency will be found", 
                                     on_change=calc_freq)
                 with col2_2:
-                    z_units = st.selectbox("", ("\u03A9", "k\u03A9", "M\u03A9"), key=4)
+                    z_units = st.selectbox("", ("\u03A9",), key='u_z')
 
            
 # Cdl
@@ -222,12 +223,22 @@ with tabs[1]:
             col1, col2, col3 = st.columns([2,10,2], gap="small")
 
             with col2:
-                volt = st.slider('Voltage for anodic and cathodic current calculations (V)', min(cv_range),
-                                max(cv_range), value=round(sum(cv_range)/len(cv_range), 3), step=0.001, key='voltage_slider', format='%.3f', 
+                volt = st.slider('Voltage for anodic and cathodic current calculations (V)', float(round(min(cv_range), 3)),
+                                float(round(max(cv_range), 3)), value=float(round(sum(cv_range)/len(cv_range), 3)), step=0.001, key='voltage_slider', format='%.3f', 
                                 help="Enter voltage for which anodic and cathodic current will be found \n (1 mV resolution)")
             
-            #reset    
-            fig2_1.add_vline(x=volt, line_width=2, line_color='#FFFFFF')
+            #reset
+            fig2_1.add_shape(
+                type='line',
+                xref='x',
+                yref='paper',
+                x0=volt,
+                y0=0,
+                x1=volt,
+                y1=1,
+                line=dict(color='#FFFFFF', width=2, dash='solid'),
+                name='vertical_line'
+            )
                 
         #category_orders={"": ["10 mV/s", "20 mV/s"]}
         show_fig(fig2_1, **fig_props)
@@ -257,7 +268,8 @@ with tabs[1]:
 
             st.divider()
 
-            fig2_2 = px.scatter(reg_map, x='Velocity (mV/s)', y='(Ia-Ic)/2', trendline='ols')
+            fig2_2 = px.scatter(reg_map, x='Velocity (mV/s)', y='(Ia-Ic)/2', trendline='ols', trendline_color_override='#1f77b4')
+            fig2_2.data[0].marker.color = '#1f77b4'
             show_fig(fig2_2, title='Cyclic Voltammetry: Double-Layer Capacitance Estimation',
                       x_label='V/s (A)', y_label=r'(I<sub>A</sub>-I<sub>C</sub>)/2 (A)')
 
@@ -346,12 +358,18 @@ with tabs[2]:
 
             csc_50 = v_map.loc[v_map["Velocity (mV/s)"] == 50, "CSC (uC)"].iloc[0]
             csc_200 = v_map.loc[v_map["Velocity (mV/s)"] == 200, "CSC (uC)"].iloc[0]
-
-            st.markdown(f"$CSC_{{50mV/s}} = {csc_50*1e6:.2f}\,uC$")
-            st.markdown(f"$CSC_{{200mV/s}} = {csc_200*1e6:.2f}\,uC$")
-
             csc_50_area = csc_50/(ele_area_csc*0.01)
             csc_200_area = csc_200/(ele_area_csc*0.01)
 
-            st.markdown(f"$CSC_{{50mV/s, \, area}} = {csc_50_area*1e6:.2f}\,uC/cm^{2}$")
-            st.markdown(f"$CSC_{{200mV/s, \, area}} = {csc_200_area*1e6:.2f}\,uC/cm^{2}$")
+            col1, col2 = st.columns(2)
+            with col1:        
+                st.markdown(f"$CSC_{{50mV/s}} = {csc_50*1e6:.2f}\,uC$")
+                st.markdown(f"$CSC_{{200mV/s}} = {csc_200*1e6:.2f}\,uC$")
+            with col2:        
+                st.markdown(f"$CSC_{{50mV/s, \, area}} = {csc_50_area*1e6:.2f}\,uC/cm^{2}$")
+                st.markdown(f"$CSC_{{200mV/s, \, area}} = {csc_200_area*1e6:.2f}\,uC/cm^{2}$")
+
+            
+            
+
+            
