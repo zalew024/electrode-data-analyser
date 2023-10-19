@@ -350,7 +350,7 @@ with tabs[2]:
                 
         col1, col2 = st.columns([2, 3])
         with col1:  
-            ele_area_csc = st.number_input("**Electrode surface area [mm]**", value=10, key="ele_csc")
+            ele_area_csc = st.number_input("**Electrode surface area [mm]**", value=10, step=0.000001, key="ele_csc", format='%.6f')
 
         st.divider()
 
