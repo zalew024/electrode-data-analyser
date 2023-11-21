@@ -32,7 +32,8 @@ def calc_freq():
 tab_titles = [
     "Impedance",
     "Double-layer capacitance",
-    "Charge-storage capacity"
+    "Charge-storage capacity",
+    "Charge injection limit"
 ]
 tabs = st.tabs(tab_titles)
 
@@ -188,12 +189,12 @@ with tabs[1]:
         options = data_to_plot(df_cdl.keys(), 'opt_cdl')
         
         if len(options)==6:
-            v_map_cdl = pd.DataFrame(index=df_cdl.keys(), columns=["CSC (uC)", "Velocity (mV/s)"])
+            v_map_cdl = pd.DataFrame(index=df_cdl.keys(), columns=["integral", "Velocity (mV/s)"])
 
             for name, df in df_cdl.items():
-                v_map_cdl["CSC (uC)"][name] = integrate.trapz(df['Current (A)'], x=df['Potential (V)'])
+                v_map_cdl["integral"][name] = integrate.trapz(df['Current (A)'], x=df['Potential (V)'])
 
-            v_map_cdl = v_map_cdl.sort_values(by=["CSC (uC)"], ascending=True)
+            v_map_cdl = v_map_cdl.sort_values(by=["integral"], ascending=True)
             v_map_cdl["Velocity (mV/s)"] = [10, 20, 40, 60, 80, 100]
 
             with st.expander("Assigned CV velocity"):
@@ -306,25 +307,33 @@ with tabs[2]:
                     df = df[['Potential (V)', 'Current (A)']]
         except:
             df_csc = {}
-            st.error('Imported file does not match the calculation method')
+            st.error('Imported file does not match the calculation method') 
 
     if df_csc:
+
+        for name, df in df_csc.items():
+            min_U = df['Potential (V)'].min()
+            for index, row in df.iterrows():
+                df_csc[name] = df_csc[name].drop(index)
+                if row['Potential (V)'] == min_U:
+                    break
+            df = df.reset_index(drop=True)
 
         fig3_1 = go.Figure()
 
         options = data_to_plot(df_csc.keys(), 'opt_csc')
 
         if len(options)==2:
-            v_map = pd.DataFrame(index=df_csc.keys(), columns=["CSC (uC)", "Velocity (mV/s)"])
+            v_map = pd.DataFrame(index=df_csc.keys(), columns=["CSC (C)", "Velocity (mV/s)"])
 
             for name, df in df_csc.items():
-                v_map["CSC (uC)"][name] = integrate.trapz(df['Current (A)'], x=df['Potential (V)'])
+                v_map["CSC (C)"][name] = integrate.trapz(df['Current (A)'], x=df['Potential (V)'])
                 
-            v_map = v_map.sort_values(by=["CSC (uC)"], ascending=True)
+            v_map = v_map.sort_values(by=["CSC (C)"], ascending=True)
             v_map["Velocity (mV/s)"] = [50, 200]
 
             with st.expander("Assigned CV velocity"):
-                st.write(v_map.style.format({"CSC (uC)" : "{:e}"}))
+                st.write(v_map.style.format({"CSC (C)" : "{:e}"}))
 
         for name, df in df_csc.items():
             if name in options:
@@ -350,26 +359,104 @@ with tabs[2]:
                 
         col1, col2 = st.columns([2, 3])
         with col1:  
-            ele_area_csc = st.number_input("**Electrode surface area [mm]**", value=10.0, step=0.000001, key="ele_csc", format='%.6f')
+            ele_area_csc = st.number_input("**Electrode surface area [mm²]**", value=10.0, step=0.000001, key="ele_csc", format='%.6f')
 
         st.divider()
 
+        CV_cycles = 3
+
         if len(options)==2:
 
-            csc_50 = v_map.loc[v_map["Velocity (mV/s)"] == 50, "CSC (uC)"].iloc[0]
-            csc_200 = v_map.loc[v_map["Velocity (mV/s)"] == 200, "CSC (uC)"].iloc[0]
-            csc_50_area = csc_50/(ele_area_csc*0.01)
-            csc_200_area = csc_200/(ele_area_csc*0.01)
+            csc_50 = ((v_map.loc[v_map["Velocity (mV/s)"] == 50, "CSC (C)"].iloc[0])/CV_cycles)/0.05
+            csc_200 = ((v_map.loc[v_map["Velocity (mV/s)"] == 200, "CSC (C)"].iloc[0])/CV_cycles)/0.2
+            csc_50_area = (csc_50)/(ele_area_csc*1e-2) #C/cm2
+            csc_200_area = (csc_200)/(ele_area_csc*1e-2) #C/cm2
 
             col1, col2 = st.columns(2)
             with col1:        
-                st.markdown(f"$CSC_{{50mV/s}} = {csc_50*1e6:.2f}\,uC$")
-                st.markdown(f"$CSC_{{200mV/s}} = {csc_200*1e6:.2f}\,uC$")
+                st.markdown(f"$CSC_{{50mV/s}} = {csc_50*1e3:.2f}\,mC$")
+                st.markdown(f"$CSC_{{200mV/s}} = {csc_200*1e3:.2f}\,mC$")
             with col2:        
-                st.markdown(f"$CSC_{{50mV/s, \, area}} = {csc_50_area*1e6:.2f}\,uC/cm^{2}$")
-                st.markdown(f"$CSC_{{200mV/s, \, area}} = {csc_200_area*1e6:.2f}\,uC/cm^{2}$")
+                st.markdown(f"$CSC_{{50mV/s, \, area}} = {csc_50_area*1e3:.2f}\,mC/cm^{2}$")
+                st.markdown(f"$CSC_{{200mV/s, \, area}} = {csc_200_area*1e3:.2f}\,mC/cm^{2}$")
 
             
-            
+#CIL
+with tabs[3]:
+
+    st.markdown("**Charge injection limit (CIL)**")
+    df_cil = {}
+
+    with st.expander("Import data file"):
+        try:
+            uploaded_files_cil = st.file_uploader("Choose a CSV or TXT file", type=['csv', 'txt'], 
+                                                accept_multiple_files=True, key='cil_upload')
+            for uploaded_file in uploaded_files_cil:
+                df_cil.update({uploaded_file.name[:-4] : pd.read_table(uploaded_file, sep='\t', 
+                                                                    index_col=None, header=0, usecols=range(2))})
+            for name, df in df_cil.items():
+                    df = df[['Potential (V)', 'Elapsed Time (s)']]
+        except:
+            df_cil = {}
+            st.error('Imported file does not match the calculation method')
+
+    start, stop = 0.049, 0.054
+
+    if df_cil:
+
+        for name, df in df_cil.items():
+            for index, row in df.iterrows():
+                if row['Elapsed Time (s)'] < start or row['Elapsed Time (s)'] > stop:
+                    df_cil[name] = df_cil[name].drop(index)
+                else:
+                    continue
+            df = df.reset_index(drop=True)
+
+        fig4_1 = go.Figure()
+
+        options = data_to_plot(df_cil.keys(), 'opt_cil')
+
+        if len(options)==17:
+            a_map_cil = pd.DataFrame(index=df_cil.keys(), columns=['Amplitude', 'Current (mA)'])
+
+            a, b = 0.05, 0.0508
+            df_map = df_cil.copy()
+
+            for name, df in df_map.items():
+                for index, row in df.iterrows():
+                    if row['Elapsed Time (s)'] < a or row['Elapsed Time (s)'] > b:
+                        df_map[name] = df_map[name].drop(index)
+                    else:
+                        continue
+                df = df.reset_index(drop=True)
+
+            for name, df in df_map.items():
+                a_map_cil['Amplitude'][name] = integrate.trapz(df['Potential (V)'], x=df['Elapsed Time (s)'])
+
+            a_map_cil = a_map_cil.sort_values(by=['Amplitude'], ascending=True)
+            a_map_cil['Current (mA)'] = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 6, 7, 8, 9, 10, 11, 12]
+
+            with st.expander("Assigned amplitude"):
+                st.write(a_map_cil['Current (mA)'])
+
+        with st.expander("Figure properties"):
+            fig_props = {
+                'title': st.text_input("**Title**", value="Biphasic pulse", key='title_cil'),
+                'x_label': st.text_input("**X-axis label**", value="Time (s)", key='xlabel_cil'),
+                'y_label': st.text_input("**Y-axis label**", value="Potential (V)", key='ylabel_cil'),
+                'legend': True if len(options)>1 else False,
+                'width': 3
+            }
+
+        for name, df in df_cil.items():
+            if name in options:
+                label = f'{a_map_cil["Current (mA)"][name]} mA' if len(options)==17 else name
+                fig4_1.add_trace(go.Scatter(x=df['Elapsed Time (s)'], y=df['Potential (V)'], 
+                                            mode='lines', name=label, line=dict(width=1)))
+                
+        show_fig(fig4_1, **fig_props)
+
+        img_cil = export_fig(fig4_1, **fig_props)
+        btn = download_fig(img_cil)
 
             
