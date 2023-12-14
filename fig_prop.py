@@ -3,11 +3,22 @@ import streamlit as st
 
 color_palette = [
     'rgb(31, 119, 180)',   # Blue
-    'rgb(255, 127, 14)',   # Orange
+    'rgb(253, 125, 12)',   # Orange
     'rgb(44, 160, 44)',    # Green
     'rgb(214, 39, 40)',    # Red
     'rgb(148, 103, 189)',  # Purple
-    'rgb(140, 86, 75)'     # Brown
+    'rgb(140, 86, 75)',     # Brown
+    'rgb(255, 187, 120)', # Light Orange
+    'rgb(152, 223, 138)', # Light Green
+    'rgb(255, 152, 150)', # Light Red
+    'rgb(197, 176, 213)', # Light Purple
+    'rgb(179, 222, 105)', # Lime Green
+    'rgb(102, 0, 153)', # Dark Purple
+    'rgb(169, 212, 204)', # Light Blue
+    'rgb(242, 195, 219)', # Light Pink
+    'rgb(245, 223, 143)', # Light Yellow
+    'rgb(160, 160, 160)', # Gray
+    'rgb(255, 0, 128)' # Intense Magenta
     ]
 marker_symbols = ['circle', 'square', 'diamond', 'cross', 'x', 'triangle-up']
 
@@ -31,24 +42,31 @@ def download_fig(img):
 @st.cache_data
 def export_fig(fig, **fig_props):
     fig.update_layout(
-        title=fig_props.get('title'),
+        #title=fig_props.get('title'),
         showlegend=fig_props.get('legend'),
         margin=dict(
-            l=150,
-            r=150,
-            b=130,
-            t=130
+            l=230,
+            r=80,
+            b=140,
+            t=80
         ),
         font=dict(
-            size=22
+            size=25
         ),
         xaxis = dict(
             showexponent = 'all',
-            exponentformat = 'e'
+            exponentformat = 'none',
+            showline=True,
+            linewidth=3,
+            linecolor='black'
         ),
         yaxis = dict(
             showexponent = 'all',
-            exponentformat = 'e'
+            exponentformat = 'none',
+            showline=True,
+            linewidth=3,
+            linecolor='black',
+            title_standoff=25
         ),
         colorway=color_palette
     )
@@ -74,6 +92,7 @@ def export_fig(fig, **fig_props):
         title_text=fig_props.get('y_label'),
         minor=dict(
             ticklen=5,
+            showgrid=True,
             gridcolor='#b5b3b3'
         ),
         showgrid=True,
@@ -85,7 +104,7 @@ def export_fig(fig, **fig_props):
             width=fig_props.get('width')
         ), 
         marker=dict(
-            size=14
+            size=16
         )
     )
     for i, trace in enumerate(fig.data):
@@ -133,7 +152,8 @@ def show_fig(fig, **fig_props):
     fig.update_yaxes(
         title_text=fig_props.get('y_label'),
         minor=dict(
-            ticklen=5
+            ticklen=5,
+            showgrid=True
         ),
         showgrid=True,
         griddash='dot'

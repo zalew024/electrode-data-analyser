@@ -79,36 +79,35 @@ with tabs[0]:
             scale = st.radio("**Graph scale**", ('log', 'lin'), horizontal=True)
             fig_props = {
                 'title': st.text_input("**Title**", value="Impedance magnitude", key='title_z'),
-                'x_label': st.text_input("**X-axis label**", value="f (kHz)", key='xlabel_z'),
-                'y_label': st.text_input("**Y-axis label**", value="|Z| (k\u03A9)", key='ylabel_z'),
+                'x_label': st.text_input("**X-axis label**", value="f (Hz)", key='xlabel_z'),
+                'y_label': st.text_input("**Y-axis label**", value="|Z| (\u03A9)", key='ylabel_z'),
                 'legend': True if len(options)>1 and avg == 'independent traces' else False,
-                'width': 4
+                'width': 7
             }
 
         df_z_list = []
         for name, df in df_z.items():
             if name in options:
-                df.rename(columns = {'Frequency (Hz)':'f (kHz)', 
-                                     '|Z| (\u03A9)':'|Z| (k\u03A9) - {}'.format(name)}, 
+                df.rename(columns = {'Frequency (Hz)':'f (Hz)', 
+                                     '|Z| (\u03A9)':'|Z| (\u03A9) - {}'.format(name)}, 
                                      inplace=True)
-                df = df*(10**-3)
                 if avg == 'independent traces':
-                    fig.add_trace(go.Scatter(x=df['f (kHz)'], y=df['|Z| (k\u03A9) - {}'.format(name)], 
+                    fig.add_trace(go.Scatter(x=df['f (Hz)'], y=df['|Z| (\u03A9) - {}'.format(name)], 
                                              mode='lines+markers', name=name))
                 else:
                     df_z_list.append(df)
         
         if df_z_list and avg == 'average from selected measurements':
-                df_merged = reduce(lambda  left,right: pd.merge(left,right,on=['f (kHz)'],
+                df_merged = reduce(lambda  left,right: pd.merge(left,right,on=['f (Hz)'],
                                         how='outer'), df_z_list)
                 with st.expander("Averaged data"):
-                    df_merged = df_merged.sort_values(by=['f (kHz)'], 
+                    df_merged = df_merged.sort_values(by=['f (Hz)'], 
                                 ascending=False).reset_index(drop=True).interpolate(method='pchip', limit_direction='both', axis=0)
                     av_list = df_merged.columns.values.tolist()
                     av_list.pop(0)
                     df_merged['Average'] = df_merged[av_list].mean(axis=1)
                     st.dataframe(df_merged.style.format("{:.6f}"))
-                fig.add_trace(go.Scatter(x=df_merged['f (kHz)'], y=df_merged['Average'],
+                fig.add_trace(go.Scatter(x=df_merged['f (Hz)'], y=df_merged['Average'],
                                         mode='lines+markers', name=name))
         
         fig.update_xaxes(type='log' if scale == 'log' else 'linear')
@@ -124,17 +123,17 @@ with tabs[0]:
         if options:
 
             if avg == 'average from selected measurements':
-                df_interp = df_merged[['f (kHz)', 'Average']]*1000
+                df_interp = df_merged[['f (Hz)', 'Average']]*1000
                 col_name = 'Average'
             else:
                 interp = st.radio("**Data to interpolate**", options, horizontal=True)
                 df_interp = df_z.get(interp)
-                col_name = '|Z| (k\u03A9) - {}'.format(interp)
+                col_name = '|Z| (\u03A9) - {}'.format(interp)
 
             df_interp = df_interp.sort_values(by=[col_name], ascending=True).reset_index(drop=True)
-            F_interp = PchipInterpolator(df_interp[col_name], df_interp['f (kHz)'])
-            df_interp = df_interp.sort_values(by=['f (kHz)'], ascending=True).reset_index(drop=True)
-            Z_interp = PchipInterpolator(df_interp['f (kHz)'], df_interp[col_name])
+            F_interp = PchipInterpolator(df_interp[col_name], df_interp['f (Hz)'])
+            df_interp = df_interp.sort_values(by=['f (Hz)'], ascending=True).reset_index(drop=True)
+            Z_interp = PchipInterpolator(df_interp['f (Hz)'], df_interp[col_name])
         
             min_in, max_in = df_interp.min(), df_interp.max()
 
@@ -206,7 +205,7 @@ with tabs[1]:
                 'x_label': st.text_input("**X-axis label**", value="Potential (V)", key='xlabel_cdl'),
                 'y_label': st.text_input("**Y-axis label**", value="Current (A)", key='ylabel_cdl'),
                 'legend': True if len(options)>1 else False,
-                'width': 1
+                'width': 2
             }
 
         st.divider()
@@ -347,7 +346,7 @@ with tabs[2]:
                 'x_label': st.text_input("**X-axis label**", value="Potential (V)", key='xlabel_csc'),
                 'y_label': st.text_input("**Y-axis label**", value="Current (A)", key='ylabel_csc'),
                 'legend': True if len(options)>1 else False,
-                'width': 3
+                'width': 4
             }
                    
         show_fig(fig3_1, **fig_props)
