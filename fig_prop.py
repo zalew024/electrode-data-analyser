@@ -2,24 +2,26 @@ import streamlit as st
 
 
 color_palette = [
-    'rgb(31, 119, 180)',   # Blue
-    'rgb(253, 125, 12)',   # Orange
-    'rgb(44, 160, 44)',    # Green
-    'rgb(214, 39, 40)',    # Red
-    'rgb(148, 103, 189)',  # Purple
-    'rgb(140, 86, 75)',     # Brown
-    'rgb(255, 187, 120)', # Light Orange
-    'rgb(152, 223, 138)', # Light Green
-    'rgb(255, 152, 150)', # Light Red
-    'rgb(197, 176, 213)', # Light Purple
-    'rgb(179, 222, 105)', # Lime Green
-    'rgb(102, 0, 153)', # Dark Purple
-    'rgb(169, 212, 204)', # Light Blue
-    'rgb(242, 195, 219)', # Light Pink
-    'rgb(245, 223, 143)', # Light Yellow
-    'rgb(160, 160, 160)', # Gray
-    'rgb(255, 0, 128)' # Intense Magenta
-    ]
+    'rgb(0, 0, 0)',   # Black
+    'rgb(255, 0, 0)',   # Red
+    'rgb(0, 0, 255)',    # Blue
+    'rgb(255, 0, 255)',    # Magenta
+    'rgb(0, 128, 0)',  # Green
+    'rgb(30, 0, 128)',     # Blue-Purple
+    'rgb(255, 128, 0)', # Orange
+    'rgb(128, 0, 128)', # Purple
+    'rgb(0, 128, 128)', # Teal
+    'rgb(128, 128, 0)', # Olive
+    'rgb(0, 255, 0)', # Lime Green
+    'rgb(255, 0, 128)', # Pink
+    'rgb(128, 0, 0)', # Maroon
+    'rgb(0, 255, 255)', # Cyan
+    'rgb(255, 255, 0)', # Yellow
+    'rgb(128, 128, 128)', # Gray
+    'rgb(128, 0, 255)', # Light Purple 
+    'rgb(43, 99, 162)', # Light Blue 
+    'rgb(255, 178, 255)' # Light Magenta 
+]
 marker_symbols = ['circle', 'square', 'diamond', 'cross', 'x', 'triangle-up']
 
 
