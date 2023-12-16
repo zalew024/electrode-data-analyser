@@ -432,7 +432,7 @@ with tabs[3]:
             for name, df in df_map.items():
                 a_map_cil['Amplitude'][name] = integrate.trapz(df['Potential (V)'], x=df['Elapsed Time (s)'])
 
-            a_map_cil = a_map_cil.sort_values(by=['Amplitude'], ascending=True)
+            a_map_cil = a_map_cil.sort_values(by=['Amplitude'], ascending=False)
             a_map_cil['Current (mA)'] = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 6, 7, 8, 9, 10, 11, 12]
 
             with st.expander("Assigned amplitude"):
