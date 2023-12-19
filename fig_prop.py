@@ -44,7 +44,6 @@ def download_fig(img):
 @st.cache_data
 def export_fig(fig, **fig_props):
     fig.update_layout(
-        #title=fig_props.get('title'),
         showlegend=fig_props.get('legend'),
         margin=dict(
             l=230,
@@ -57,14 +56,14 @@ def export_fig(fig, **fig_props):
         ),
         xaxis = dict(
             showexponent = 'all',
-            exponentformat = 'none',
+            exponentformat = 'B',
             showline=True,
             linewidth=3,
             linecolor='black'
         ),
         yaxis = dict(
             showexponent = 'all',
-            exponentformat = 'none',
+            exponentformat = 'B',
             showline=True,
             linewidth=3,
             linecolor='black',
@@ -106,7 +105,7 @@ def export_fig(fig, **fig_props):
             width=fig_props.get('width')
         ), 
         marker=dict(
-            size=16
+            size=fig_props.get('marker')
         )
     )
     for i, trace in enumerate(fig.data):

@@ -82,7 +82,8 @@ with tabs[0]:
                 'x_label': st.text_input("**X-axis label**", value="f (Hz)", key='xlabel_z'),
                 'y_label': st.text_input("**Y-axis label**", value="|Z| (\u03A9)", key='ylabel_z'),
                 'legend': True if len(options)>1 and avg == 'independent traces' else False,
-                'width': 7
+                'width': 7,
+                'marker': 16
             }
 
         df_z_list = []
@@ -202,11 +203,17 @@ with tabs[1]:
         with st.expander("Figure properties"):
             fig_props = {
                 'title': st.text_input("**Title**", value="Cyclic voltammetry", key='title_cdl'),
-                'x_label': st.text_input("**X-axis label**", value="Potential (V)", key='xlabel_cdl'),
-                'y_label': st.text_input("**Y-axis label**", value="Current (A)", key='ylabel_cdl'),
+                'x_label': st.text_input("**X-axis label**", value=r'E vs. Ag/AgCl<sub>3</sub> (V)', key='xlabel_cdl'),
+                'y_label': st.text_input("**Y-axis label**", value=r'J (A⋅cm<sup>-2</sup>)', key='ylabel_cdl'),
                 'legend': True if len(options)>1 else False,
                 'width': 2
             }
+
+        st.divider()
+
+        col1, col2 = st.columns([2, 3])
+        with col1:        
+            ele_area_cdl = st.number_input("**Electrode surface area [mm²]**", value=10.0, step=0.000001, key="ele_cdl", format='%.6f')
 
         st.divider()
 
@@ -215,7 +222,7 @@ with tabs[1]:
             if name in options:
                 label = f'{v_map_cdl["Velocity (mV/s)"][name]} mV/s' if len(options)==6 else name
                 cv_range.extend([df['Potential (V)'].min(), df['Potential (V)'].max()])
-                fig2_1.add_trace(go.Scatter(x=df['Potential (V)'], y=df['Current (A)'], 
+                fig2_1.add_trace(go.Scatter(x=df['Potential (V)'], y=df['Current (A)']/(ele_area_cdl*0.01), 
                                             mode='lines', name=label, line=dict(width=1)))
             
         if cv_range: 
@@ -259,12 +266,6 @@ with tabs[1]:
                     val = df.loc[df['Potential (V)'] == volt, 'Current (A)']
                     i_A, i_C = val[val > 0].mean(), val[val < 0].mean()
                     reg_map.loc[name, "(Ia-Ic)/2"] = (i_A-i_C)/2
-
-            st.divider()
-
-            col1, col2 = st.columns([2, 3])
-            with col1:        
-                ele_area_cdl = st.number_input("**Electrode surface area [mm²]**", value=10.0, step=0.000001, key="ele_cdl", format='%.6f')
 
             st.divider()
 
@@ -334,31 +335,33 @@ with tabs[2]:
             with st.expander("Assigned CV velocity"):
                 st.write(v_map.style.format({"CSC (C)" : "{:e}"}))
 
-        for name, df in df_csc.items():
-            if name in options:
-                label = f'{v_map["Velocity (mV/s)"][name]} mV/s' if len(options)==2 else name
-                fig3_1.add_trace(go.Scatter(x=df['Potential (V)'], y=df['Current (A)'], 
-                                        name=label))
-
         with st.expander("Figure properties"):
             fig_props = {
                 'title': st.text_input("**Title**", value="Cyclic voltammetry", key='title_csc'),
-                'x_label': st.text_input("**X-axis label**", value="Potential (V)", key='xlabel_csc'),
-                'y_label': st.text_input("**Y-axis label**", value="Current (A)", key='ylabel_csc'),
+                'x_label': st.text_input("**X-axis label**", value=r'E vs. Ag/AgCl<sub>3</sub> (V)', key='xlabel_csc'),
+                'y_label': st.text_input("**Y-axis label**", value=r'J (A⋅cm<sup>-2</sup>)', key='ylabel_csc'),
                 'legend': True if len(options)>1 else False,
                 'width': 4
             }
-                   
-        show_fig(fig3_1, **fig_props)
-
-        img_csc_1 = export_fig(fig3_1, **fig_props)
-        btn = download_fig(img_csc_1)
 
         st.divider()
                 
         col1, col2 = st.columns([2, 3])
         with col1:  
             ele_area_csc = st.number_input("**Electrode surface area [mm²]**", value=10.0, step=0.000001, key="ele_csc", format='%.6f')
+
+        st.divider()
+
+        for name, df in df_csc.items():
+            if name in options:
+                label = f'{v_map["Velocity (mV/s)"][name]} mV/s' if len(options)==2 else name
+                fig3_1.add_trace(go.Scatter(x=df['Potential (V)'], y=df['Current (A)']/(ele_area_csc*0.01), 
+                                        name=label))
+                   
+        show_fig(fig3_1, **fig_props)
+
+        img_csc_1 = export_fig(fig3_1, **fig_props)
+        btn = download_fig(img_csc_1)
 
         st.divider()
 
@@ -444,14 +447,15 @@ with tabs[3]:
                 'x_label': st.text_input("**X-axis label**", value="Time (s)", key='xlabel_cil'),
                 'y_label': st.text_input("**Y-axis label**", value="Potential (V)", key='ylabel_cil'),
                 'legend': True if len(options)>1 else False,
-                'width': 3
+                'width': 3,
+                'marker': 10
             }
 
         for name, df in df_cil.items():
             if name in options:
                 label = f'{a_map_cil["Current (mA)"][name]} mA' if len(options)==17 else name
                 fig4_1.add_trace(go.Scatter(x=df['Elapsed Time (s)'], y=df['Potential (V)'], 
-                                            mode='lines', name=label, line=dict(width=1)))
+                                            mode='lines+markers', name=label, line=dict(width=1)))
                 
         show_fig(fig4_1, **fig_props)
 
