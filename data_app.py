@@ -28,6 +28,14 @@ def calc_z():
 def calc_freq():
     st.session_state.frequency = float(F_interp(st.session_state.impedance))
 
+def get_ele_area(area_key):
+    st.divider()
+    col1, col2 = st.columns([2, 3])
+    with col1:        
+        ele_area = st.number_input("**Electrode surface area [mm²]**", value=10.0, step=0.000001, key=area_key, format='%.6f')
+    st.divider()
+    return ele_area
+
 
 tab_titles = [
     "Impedance",
@@ -62,7 +70,7 @@ with tabs[0]:
         c = 0
         if df_z:
             for name, df in df_z.items():
-                df.rename(columns={'|Z| (ohms)': '|Z| (\u03A9)'}, inplace=True)
+                df.rename(columns={'|Z| (ohms)': '|Z| (Ω)'}, inplace=True)
                 data_col[c].markdown(name)
                 data_col[c].dataframe(df)
                 c = not c
@@ -80,20 +88,22 @@ with tabs[0]:
             fig_props = {
                 'title': st.text_input("**Title**", value="Impedance magnitude", key='title_z'),
                 'x_label': st.text_input("**X-axis label**", value="f (Hz)", key='xlabel_z'),
-                'y_label': st.text_input("**Y-axis label**", value="|Z| (\u03A9)", key='ylabel_z'),
+                'y_label': st.text_input("**Y-axis label**", value=r'|Z| (Ω⋅cm<sup>-2</sup>)', key='ylabel_z'),
                 'legend': True if len(options)>1 and avg == 'independent traces' else False,
                 'width': 7,
                 'marker': 16
             }
 
+        ele_area_z = get_ele_area("ele_z")
+
         df_z_list = []
         for name, df in df_z.items():
             if name in options:
                 df.rename(columns = {'Frequency (Hz)':'f (Hz)', 
-                                     '|Z| (\u03A9)':'|Z| (\u03A9) - {}'.format(name)}, 
+                                     '|Z| (Ω)':'|Z| (Ω) - {}'.format(name)}, 
                                      inplace=True)
                 if avg == 'independent traces':
-                    fig.add_trace(go.Scatter(x=df['f (Hz)'], y=df['|Z| (\u03A9) - {}'.format(name)], 
+                    fig.add_trace(go.Scatter(x=df['f (Hz)'], y=df['|Z| (Ω) - {}'.format(name)]/(ele_area_z*0.01), 
                                              mode='lines+markers', name=name))
                 else:
                     df_z_list.append(df)
@@ -108,7 +118,7 @@ with tabs[0]:
                     av_list.pop(0)
                     df_merged['Average'] = df_merged[av_list].mean(axis=1)
                     st.dataframe(df_merged.style.format("{:.6f}"))
-                fig.add_trace(go.Scatter(x=df_merged['f (Hz)'], y=df_merged['Average'],
+                fig.add_trace(go.Scatter(x=df_merged['f (Hz)'], y=df_merged['Average']/(ele_area_z*0.01),
                                         mode='lines+markers', name=name))
         
         fig.update_xaxes(type='log' if scale == 'log' else 'linear')
@@ -129,7 +139,7 @@ with tabs[0]:
             else:
                 interp = st.radio("**Data to interpolate**", options, horizontal=True)
                 df_interp = df_z.get(interp)
-                col_name = '|Z| (\u03A9) - {}'.format(interp)
+                col_name = '|Z| (Ω) - {}'.format(interp)
 
             df_interp = df_interp.sort_values(by=[col_name], ascending=True).reset_index(drop=True)
             F_interp = PchipInterpolator(df_interp[col_name], df_interp['f (Hz)'])
@@ -143,7 +153,7 @@ with tabs[0]:
             with col1:
                 col1_1, col1_2 = st.columns([2,1], gap="small")
                 with col1_1:
-                    freq = st.number_input('Frequency', min_value=min_in[0], max_value=max_in[0], value=1.0, 
+                    freq = st.number_input('Frequency', min_value=min_in[0], max_value=max_in[0], value=1000.0, 
                                     step=0.01, key='frequency', help="Enter frequency for which corresponding impedance will be found", 
                                     on_change=calc_z)
                 with col1_2:
@@ -160,7 +170,7 @@ with tabs[0]:
                                     step=0.01, key='impedance', help="Enter impedance for which corresponding frequency will be found", 
                                     on_change=calc_freq)
                 with col2_2:
-                    z_units = st.selectbox("", ("\u03A9",), key='u_z')
+                    z_units = st.selectbox("", ("Ω",), key='u_z')
 
            
 # Cdl
@@ -209,13 +219,7 @@ with tabs[1]:
                 'width': 2
             }
 
-        st.divider()
-
-        col1, col2 = st.columns([2, 3])
-        with col1:        
-            ele_area_cdl = st.number_input("**Electrode surface area [mm²]**", value=10.0, step=0.000001, key="ele_cdl", format='%.6f')
-
-        st.divider()
+        ele_area_cdl = get_ele_area("ele_cdl")
 
         cv_range = []
         for name, df in df_cdl.items():
@@ -344,13 +348,7 @@ with tabs[2]:
                 'width': 4
             }
 
-        st.divider()
-                
-        col1, col2 = st.columns([2, 3])
-        with col1:  
-            ele_area_csc = st.number_input("**Electrode surface area [mm²]**", value=10.0, step=0.000001, key="ele_csc", format='%.6f')
-
-        st.divider()
+        ele_area_csc = get_ele_area("ele_csc")
 
         for name, df in df_csc.items():
             if name in options:
@@ -448,7 +446,8 @@ with tabs[3]:
                 'y_label': st.text_input("**Y-axis label**", value="Potential (V)", key='ylabel_cil'),
                 'legend': True if len(options)>1 else False,
                 'width': 3,
-                'marker': 10
+                'marker': 10,
+                'range': [-2.2, 1.5]
             }
 
         for name, df in df_cil.items():

@@ -62,6 +62,7 @@ def export_fig(fig, **fig_props):
             linecolor='black'
         ),
         yaxis = dict(
+            range=fig_props.get('range'),
             showexponent = 'all',
             exponentformat = 'B',
             showline=True,
