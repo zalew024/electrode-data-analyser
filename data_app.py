@@ -88,7 +88,7 @@ with tabs[0]:
             fig_props = {
                 'title': st.text_input("**Title**", value="Impedance magnitude", key='title_z'),
                 'x_label': st.text_input("**X-axis label**", value="f (Hz)", key='xlabel_z'),
-                'y_label': st.text_input("**Y-axis label**", value=r'|Z| (Ω⋅cm<sup>-2</sup>)', key='ylabel_z'),
+                'y_label': st.text_input("**Y-axis label**", value=r'|Z| (Ω⋅cm<sup>2</sup>)', key='ylabel_z'),
                 'legend': True if len(options)>1 and avg == 'independent traces' else False,
                 'width': 7,
                 'marker': 16
@@ -99,11 +99,12 @@ with tabs[0]:
         df_z_list = []
         for name, df in df_z.items():
             if name in options:
+                df['|Z| (Ω)'] = df['|Z| (Ω)']*(ele_area_z*0.01)
                 df.rename(columns = {'Frequency (Hz)':'f (Hz)', 
-                                     '|Z| (Ω)':'|Z| (Ω) - {}'.format(name)}, 
+                                     '|Z| (Ω)':'|Z| (Ωcm) - {}'.format(name)}, 
                                      inplace=True)
                 if avg == 'independent traces':
-                    fig.add_trace(go.Scatter(x=df['f (Hz)'], y=df['|Z| (Ω) - {}'.format(name)]/(ele_area_z*0.01), 
+                    fig.add_trace(go.Scatter(x=df['f (Hz)'], y=df['|Z| (Ωcm) - {}'.format(name)], 
                                              mode='lines+markers', name=name))
                 else:
                     df_z_list.append(df)
@@ -118,7 +119,7 @@ with tabs[0]:
                     av_list.pop(0)
                     df_merged['Average'] = df_merged[av_list].mean(axis=1)
                     st.dataframe(df_merged.style.format("{:.6f}"))
-                fig.add_trace(go.Scatter(x=df_merged['f (Hz)'], y=df_merged['Average']/(ele_area_z*0.01),
+                fig.add_trace(go.Scatter(x=df_merged['f (Hz)'], y=df_merged['Average'],
                                         mode='lines+markers', name=name))
         
         fig.update_xaxes(type='log' if scale == 'log' else 'linear')
@@ -134,12 +135,12 @@ with tabs[0]:
         if options:
 
             if avg == 'average from selected measurements':
-                df_interp = df_merged[['f (Hz)', 'Average']]*1000
+                df_interp = df_merged[['f (Hz)', 'Average']]
                 col_name = 'Average'
             else:
                 interp = st.radio("**Data to interpolate**", options, horizontal=True)
                 df_interp = df_z.get(interp)
-                col_name = '|Z| (Ω) - {}'.format(interp)
+                col_name = '|Z| (Ωcm) - {}'.format(interp)
 
             df_interp = df_interp.sort_values(by=[col_name], ascending=True).reset_index(drop=True)
             F_interp = PchipInterpolator(df_interp[col_name], df_interp['f (Hz)'])

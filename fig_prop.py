@@ -52,7 +52,7 @@ def export_fig(fig, **fig_props):
             t=80
         ),
         font=dict(
-            size=25
+            size=27
         ),
         xaxis = dict(
             showexponent = 'all',
