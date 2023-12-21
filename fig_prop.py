@@ -30,7 +30,8 @@ def data_to_plot(data, key):
         'Select data to plot:',
         list(data),
         list(data),
-        key=key)
+        key=key
+    )
 
 def download_fig(img):
     return st.download_button(
@@ -52,11 +53,11 @@ def export_fig(fig, **fig_props):
             t=80
         ),
         font=dict(
-            size=27
+            size=22
         ),
         xaxis = dict(
             showexponent = 'all',
-            exponentformat = 'B',
+            exponentformat = 'power',
             showline=True,
             linewidth=3,
             linecolor='black'

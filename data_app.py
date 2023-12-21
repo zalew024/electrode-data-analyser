@@ -214,7 +214,7 @@ with tabs[1]:
         with st.expander("Figure properties"):
             fig_props = {
                 'title': st.text_input("**Title**", value="Cyclic voltammetry", key='title_cdl'),
-                'x_label': st.text_input("**X-axis label**", value=r'E vs. Ag/AgCl<sub>3</sub> (V)', key='xlabel_cdl'),
+                'x_label': st.text_input("**X-axis label**", value=r'E vs. Ag/AgCl (V)', key='xlabel_cdl'),
                 'y_label': st.text_input("**Y-axis label**", value=r'J (A⋅cm<sup>-2</sup>)', key='ylabel_cdl'),
                 'legend': True if len(options)>1 else False,
                 'width': 2
@@ -343,7 +343,7 @@ with tabs[2]:
         with st.expander("Figure properties"):
             fig_props = {
                 'title': st.text_input("**Title**", value="Cyclic voltammetry", key='title_csc'),
-                'x_label': st.text_input("**X-axis label**", value=r'E vs. Ag/AgCl<sub>3</sub> (V)', key='xlabel_csc'),
+                'x_label': st.text_input("**X-axis label**", value=r'E vs. Ag/AgCl (V)', key='xlabel_csc'),
                 'y_label': st.text_input("**Y-axis label**", value=r'J (A⋅cm<sup>-2</sup>)', key='ylabel_csc'),
                 'legend': True if len(options)>1 else False,
                 'width': 4
